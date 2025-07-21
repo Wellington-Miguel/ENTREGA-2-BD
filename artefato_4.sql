@@ -1,5 +1,5 @@
 --  ENTREGA 2 - ARTEFATO 4
-
+-- CRIAÇÃO DAS 6 NOVAS CONSULTAS (4 Intermediárias, 2 Avançadas)
 -- GRÁFICO 1 (Intermediário): Status Atual dos Equipamentos por Laboratório
 
 CREATE MATERIALIZED VIEW MV_DASH_STATUS_EQUIPAMENTOS AS
@@ -17,25 +17,30 @@ GROUP BY
     E.ST_DISPONIBILIDADE;
 
 
--- GRÁFICO 2 (Intermediário): Projetos Ativos Próximos do Prazo Final (próximos 6 meses)
+-- GRÁFICO 2 (Intermediário): Projetos Ativos Próximos do Prazo Final (Aprimorado)
 
 CREATE MATERIALIZED VIEW MV_DASH_PROJETOS_A_VENCER AS
 SELECT
     P.NM_PROJETO,
     P.DT_FINAL,
-    F.NM_FINANCIADOR
+    F.NM_FINANCIADOR,
+    COUNT(PP.CO_PESQUISADOR) AS "QtdParticipantes"
 FROM
     TB_PROJETO P
 JOIN
     TB_FINANCIADOR_PROJETO FP ON P.ID_PROJETO = FP.CO_PROJETO
 JOIN
     TB_FINANCIADOR F ON FP.CO_FINANCIADOR = F.ID_FINANCIADOR
+LEFT JOIN
+    TB_PESQUISADOR_PROJETO PP ON P.ID_PROJETO = PP.CO_PROJETO
 WHERE
     P.ST_PROJETO = 'A'
-    AND P.DT_FINAL BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '6 months');
+    AND P.DT_FINAL BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '6 months')
+GROUP BY
+    P.NM_PROJETO, P.DT_FINAL, F.NM_FINANCIADOR;
 
 
--- GRÁFICO 3 (Intermediário): Atividade Recente de Submissão de Relatórios (últimos 90 dias)
+-- GRÁFICO 3 (Intermediário): Atividade Recente de Submissão de Relatórios
 
 CREATE MATERIALIZED VIEW MV_DASH_RELATORIOS_RECENTES AS
 SELECT
@@ -55,14 +60,15 @@ GROUP BY
     PR.NM_PROJETO;
 
 
--- GRÁFICO 4 (Intermediário): Bolsas de Pesquisa a Expirar (próximos 3 meses)
+-- GRÁFICO 4 (Intermediário): Bolsas de Pesquisa a Expirar (Aprimorado)
 
 CREATE MATERIALIZED VIEW MV_DASH_BOLSAS_A_VENCER AS
 SELECT
     P.NM_PESQUISADOR,
     P.TP_BOLSA,
     PR.NM_PROJETO,
-    PR.DT_FINAL AS "DataFimVinculo"
+    PR.DT_FINAL AS "DataFimVinculo",
+    COUNT(PP.CO_PROJETO) OVER (PARTITION BY P.ID_PESQUISADOR) as "TotalProjetosDoBolsista"
 FROM
     TB_PESQUISADOR P
 JOIN
@@ -75,6 +81,7 @@ WHERE
 
 
 -- GRÁFICO 5 (Avançado): Análise de Colaboração em Publicações
+
 CREATE MATERIALIZED VIEW MV_DASH_ANALISE_COLABORACAO AS
 WITH ContagemAutores AS (
     SELECT
@@ -106,23 +113,30 @@ ORDER BY
     CA."NumeroDeAutores" DESC;
 
 
--- GRÁFICO 6 (Avançado): Desempenho Individual vs. Média da Titulação
+-- GRÁFICO 6 (Avançado): Desempenho Individual vs. Média da Titulação por Área (Aprimorado)
+
 CREATE MATERIALIZED VIEW MV_DASH_DESEMPENHO_COMPARATIVO AS
 SELECT
     P.NM_PESQUISADOR,
     P.DS_TITULACAO,
+    L.DS_AREA,
     AVG(A.QT_NOTA) AS "NotaMediaIndividual",
-    AVG(AVG(A.QT_NOTA)) OVER (PARTITION BY P.DS_TITULACAO) AS "NotaMediaDaTitulacao"
+    AVG(AVG(A.QT_NOTA)) OVER (PARTITION BY P.DS_TITULACAO, L.DS_AREA) AS "NotaMediaTitulacaoArea"
 FROM
     TB_PESQUISADOR P
 JOIN
     TB_AVALIACAO A ON P.ID_PESQUISADOR = A.CO_PESQUISADOR
+JOIN
+    TB_PESQUISADOR_LABORATORIO PL ON P.ID_PESQUISADOR = PL.CO_PESQUISADOR
+JOIN
+    TB_LABORATORIO L ON PL.CO_LABORATORIO = L.ID_LABORATORIO
 GROUP BY
-    P.ID_PESQUISADOR, P.NM_PESQUISADOR, P.DS_TITULACAO
+    P.ID_PESQUISADOR, P.NM_PESQUISADOR, P.DS_TITULACAO, L.DS_AREA
 ORDER BY
-    P.DS_TITULACAO, "NotaMediaIndividual" DESC;
+    L.DS_AREA, P.DS_TITULACAO, "NotaMediaIndividual" DESC;
 
 
+--  STORED PROCEDURE para gerenciar a atualização das visões
 
 
 CREATE OR REPLACE PROCEDURE sp_atualizar_paineis_operacionais()
@@ -141,4 +155,3 @@ BEGIN
     RAISE NOTICE 'Atualização dos painéis operacionais concluída com sucesso.';
 END;
 $$;
-
