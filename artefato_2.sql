@@ -1,11 +1,4 @@
---------------------------------------------------------------------------------
---                          ENTREGA 2 - ARTEFATO 2
---             Tela de Inscrição de Pesquisador em Evento
---------------------------------------------------------------------------------
-
--- Passo 1: MATERIALIZED VIEW para otimizar a validação de duplicidade
--- Justificativa: Acelera a verificação de inscrições existentes, evitando uma
--- busca custosa na tabela associativa a cada nova tentativa de inscrição.
+--    ENTREGA 2 - ARTEFATO 2
 
 CREATE MATERIALIZED VIEW MV_PARTICIPACOES_EVENTOS AS
 SELECT
@@ -14,14 +7,6 @@ SELECT
 FROM
     TB_PESQUISADOR_EVENTO;
 
--- A visão deve ser atualizada para refletir novas inscrições.
--- REFRESH MATERIALIZED VIEW MV_PARTICIPACOES_EVENTOS;
-
-
---------------------------------------------------------------------------------
--- Passo 2: STORED PROCEDURE para encapsular a lógica de inscrição
--- Justificativa: Garante que as validações e a inserção sejam executadas
--- como uma operação única e atômica, prevenindo dados inconsistentes.
 
 CREATE OR REPLACE PROCEDURE sp_inscrever_pesquisador_evento(
     p_id_pesquisador INT,
@@ -76,14 +61,3 @@ $$;
 CREATE UNIQUE INDEX idx_mv_participacoes_eventos ON MV_PARTICIPACOES_EVENTOS (CO_PESQUISADOR, CO_EVENTO);
 
 
---------------------------------------------------------------------------------
--- Passo 3: Demonstração de Uso da Stored Procedure
-
--- Exemplo de chamada para inscrever o pesquisador de ID 1 no evento de ID 1.
--- CALL sp_inscrever_pesquisador_evento(1, 1);
-
--- Exemplo de chamada que falhará (pesquisador inativo, ID 19)
--- CALL sp_inscrever_pesquisador_evento(19, 2);
-
--- Exemplo de chamada que falhará (inscrição duplicada, após a primeira chamada bem-sucedida)
--- CALL sp_inscrever_pesquisador_evento(1, 1);

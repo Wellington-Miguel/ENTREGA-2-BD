@@ -1,14 +1,7 @@
---------------------------------------------------------------------------------
---                          ENTREGA 2 - ARTEFATO 4
---              Dashboard 2: Painel de Análise Operacional
---------------------------------------------------------------------------------
-
--- Passo 1: CRIAÇÃO DAS 6 NOVAS CONSULTAS (4 Intermediárias, 2 Avançadas)
--- E SUAS RESPECTIVAS MATERIALIZED VIEWS.
+--  ENTREGA 2 - ARTEFATO 4
 
 -- GRÁFICO 1 (Intermediário): Status Atual dos Equipamentos por Laboratório
--- Requisito: RE1, RE2 (Gestão de Equipamentos).
--- Complexidade: Intermediária (JOIN, GROUP BY, COUNT).
+
 CREATE MATERIALIZED VIEW MV_DASH_STATUS_EQUIPAMENTOS AS
 SELECT
     L.NM_LABORATORIO,
@@ -25,8 +18,7 @@ GROUP BY
 
 
 -- GRÁFICO 2 (Intermediário): Projetos Ativos Próximos do Prazo Final (próximos 6 meses)
--- Requisito: Original (Monitorar a execução de projetos).
--- Complexidade: Intermediária (Tabelas: 1, mas com filtro complexo de data). Para cumprir, faremos JOIN.
+
 CREATE MATERIALIZED VIEW MV_DASH_PROJETOS_A_VENCER AS
 SELECT
     P.NM_PROJETO,
@@ -44,8 +36,7 @@ WHERE
 
 
 -- GRÁFICO 3 (Intermediário): Atividade Recente de Submissão de Relatórios (últimos 90 dias)
--- Requisito: Original (Emitir relatórios de produtividade).
--- Complexidade: Intermediária (JOIN, GROUP BY, COUNT).
+
 CREATE MATERIALIZED VIEW MV_DASH_RELATORIOS_RECENTES AS
 SELECT
     P.NM_PESQUISADOR,
@@ -65,9 +56,7 @@ GROUP BY
 
 
 -- GRÁFICO 4 (Intermediário): Bolsas de Pesquisa a Expirar (próximos 3 meses)
--- Requisito: Original (Gerenciar bolsas).
--- Complexidade: Intermediária (JOIN, filtro de data).
--- Nota: O modelo precisaria de uma data de fim de bolsa no pesquisador. Vamos simular com a data final do projeto.
+
 CREATE MATERIALIZED VIEW MV_DASH_BOLSAS_A_VENCER AS
 SELECT
     P.NM_PESQUISADOR,
@@ -86,8 +75,6 @@ WHERE
 
 
 -- GRÁFICO 5 (Avançado): Análise de Colaboração em Publicações
--- Requisito: RE3 (Métricas de divulgação).
--- Complexidade: Avançada (JOIN, GROUP BY, COUNT, SUB-QUERY).
 CREATE MATERIALIZED VIEW MV_DASH_ANALISE_COLABORACAO AS
 WITH ContagemAutores AS (
     SELECT
@@ -120,8 +107,6 @@ ORDER BY
 
 
 -- GRÁFICO 6 (Avançado): Desempenho Individual vs. Média da Titulação
--- Requisito: RE5, RE6 (Avaliação de pesquisadores).
--- Complexidade: Avançada (JOIN, GROUP BY, AVG, WINDOW).
 CREATE MATERIALIZED VIEW MV_DASH_DESEMPENHO_COMPARATIVO AS
 SELECT
     P.NM_PESQUISADOR,
@@ -138,10 +123,7 @@ ORDER BY
     P.DS_TITULACAO, "NotaMediaIndividual" DESC;
 
 
---------------------------------------------------------------------------------
--- Passo 2: STORED PROCEDURE para gerenciar a atualização das visões
--- Justificativa: Centraliza a lógica de atualização do dashboard, facilitando
--- a manutenção e o agendamento da tarefa.
+
 
 CREATE OR REPLACE PROCEDURE sp_atualizar_paineis_operacionais()
 LANGUAGE plpgsql
@@ -160,12 +142,3 @@ BEGIN
 END;
 $$;
 
---------------------------------------------------------------------------------
--- Passo 3: Demonstração de Uso
-
--- Para carregar os dados do dashboard, a aplicação faria:
--- SELECT * FROM MV_DASH_STATUS_EQUIPAMENTOS;
--- ... e assim por diante para as outras 5 visões.
-
--- Para atualizar todos os gráficos de uma vez (ex: tarefa agendada):
--- CALL sp_atualizar_paineis_operacionais();

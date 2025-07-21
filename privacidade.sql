@@ -1,6 +1,4 @@
-----------------------------------------------------------------------
--- Script para Criação de Papéis e Gestão de Privacidade (PPP2)
-----------------------------------------------------------------------
+
 
 -- PASSO 1: CRIAÇÃO DOS PAPÉIS (ROLES)
 
@@ -61,7 +59,3 @@ GRANT SELECT ON TB_PUBLICACAO TO auditor_externo;
 GRANT SELECT (ID_PROJETO, NM_PROJETO, DT_INICIO, DT_FINAL, ST_PROJETO) ON TB_PROJETO TO auditor_externo;
 
 
--- PASSO 3: ASSOCIAÇÃO DE UM USUÁRIO A UM PAPEL
--- Exemplo: criando um usuário e atribuindo-o ao papel de coordenador.
--- CREATE USER usuario_coordenador WITH PASSWORD 'senha_segura';
--- GRANT coordenador_operacional TO usuario_coordenador;

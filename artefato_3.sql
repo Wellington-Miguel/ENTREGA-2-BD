@@ -1,15 +1,7 @@
---------------------------------------------------------------------------------
---                          ENTREGA 2 - ARTEFATO 3
---                   Dashboard 1: Painel Estratégico
---------------------------------------------------------------------------------
-
--- Passo 1: CRIAÇÃO DAS 4 NOVAS CONSULTAS AVANÇADAS E SUAS MATERIALIZED VIEWS
--- Justificativa: Para garantir o carregamento rápido do dashboard, cada consulta
--- analítica é materializada. A aplicação lerá diretamente destas visões.
+--   ENTREGA 2 - ARTEFATO 3
 
 -- GRÁFICO 1: Investimento por Financiador vs. Retorno em Publicações
--- Requisito: Original (Gerenciar recursos financeiros) e RE3 (Métricas de divulgação).
--- Complexidade: Avançada (JOIN, GROUP BY, SUM, COUNT, SUB-QUERY).
+
 CREATE MATERIALIZED VIEW MV_DASH_FINANCIADOR_IMPACTO AS
 SELECT
     F.NM_FINANCIADOR,
@@ -33,8 +25,7 @@ GROUP BY
 
 
 -- GRÁFICO 2: Produtividade Científica por Grande Área de Conhecimento
--- Requisito: RE3 (Métricas de divulgação científica).
--- Complexidade: Avançada (JOIN, GROUP BY, COUNT, WINDOW).
+
 CREATE MATERIALIZED VIEW MV_DASH_PRODUTIVIDADE_AREA AS
 SELECT
     L.DS_AREA,
@@ -56,8 +47,7 @@ GROUP BY
 
 
 -- GRÁFICO 3: Distribuição de Pesquisadores por Titulação e Status do Projeto
--- Requisito: Original (Monitorar projetos e cadastrar pesquisadores).
--- Complexidade: Avançada (JOIN, GROUP BY, COUNT, SUB-QUERY).
+
 CREATE MATERIALIZED VIEW MV_DASH_ALOCACAO_PESQUISADORES AS
 SELECT
     P.DS_TITULACAO,
@@ -76,8 +66,6 @@ GROUP BY
 
 
 -- GRÁFICO 4: Análise de Carga de Trabalho vs. Desempenho Médio
--- Requisito: RE5 (Avaliar pesquisadores) e Original (Monitorar projetos).
--- Complexidade: Avançada (JOIN, GROUP BY, COUNT, AVG, SUB-QUERY).
 CREATE MATERIALIZED VIEW MV_DASH_CARGA_VS_DESEMPENHO AS
 WITH CargaTrabalho AS (
     SELECT
@@ -105,10 +93,6 @@ ORDER BY
     CT."QtdProjetos" DESC;
 
 
---------------------------------------------------------------------------------
--- Passo 2: STORED PROCEDURE COM TRANSAÇÃO para a funcionalidade do dashboard
--- Justificativa: Encapsula a operação crítica de descontinuar um projeto,
--- garantindo que todas as etapas sejam executadas atomicamente.
 
 CREATE OR REPLACE PROCEDURE sp_descontinuar_projeto(
     p_id_projeto INT
@@ -145,20 +129,3 @@ EXCEPTION
 END;
 $$;
 
---------------------------------------------------------------------------------
--- Passo 3: Demonstração de Uso
-
--- Para carregar os dados do dashboard, a aplicação faria:
--- SELECT * FROM MV_DASH_FINANCIADOR_IMPACTO;
--- SELECT * FROM MV_DASH_PRODUTIVIDADE_AREA;
--- SELECT * FROM MV_DASH_ALOCACAO_PESQUISADORES;
--- SELECT * FROM MV_DASH_CARGA_VS_DESEMPENHO;
-
--- Para atualizar os dados (ex: diariamente):
--- REFRESH MATERIALIZED VIEW MV_DASH_FINANCIADOR_IMPACTO;
--- REFRESH MATERIALIZED VIEW MV_DASH_PRODUTIVIDADE_AREA;
--- REFRESH MATERIALIZED VIEW MV_DASH_ALOCACAO_PESQUISADORES;
--- REFRESH MATERIALIZED VIEW MV_DASH_CARGA_VS_DESEMPENHO;
-
--- Para usar a funcionalidade do dashboard:
--- CALL sp_descontinuar_projeto(3); -- Tenta descontinuar o projeto de ID 3.

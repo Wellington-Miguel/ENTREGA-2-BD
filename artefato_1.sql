@@ -1,13 +1,5 @@
---------------------------------------------------------------------------------
---                          ENTREGA 2 - ARTEFATO 1
---          Tela de Cadastro de Pesquisador com Validação
---------------------------------------------------------------------------------
 
--- Passo 1: MATERIALIZED VIEW para otimizar a validação
--- Justificativa: Em um sistema com muitos projetos, consultar a tabela TB_PROJETO
--- repetidamente para validação pode ser lento. Esta visão materializada armazena
--- uma lista pré-calculada de projetos ativos e o número de participantes,
--- tornando a consulta de validação (o SELECT dentro da procedure) quase instantânea.
+--  ENTREGA 2 - ARTEFATO 1
 
 CREATE MATERIALIZED VIEW MV_PROJETOS_ATIVOS_PARTICIPANTES AS
 SELECT
@@ -24,15 +16,7 @@ WHERE
 GROUP BY
     P.ID_PROJETO, P.NM_PROJETO, P.ST_PROJETO;
 
--- É necessário atualizar a visão periodicamente.
--- REFRESH MATERIALIZED VIEW MV_PROJETOS_ATIVOS_PARTICIPANTES;
 
-
---------------------------------------------------------------------------------
--- Passo 2: STORED PROCEDURE para encapsular a lógica de negócio
--- Justificativa: Agrupa 5 comandos SQL em uma única chamada, garantindo
--- atomicidade (ou tudo funciona, ou nada é alterado). Isso simplifica o back-end
--- e previne inconsistências no banco de dados.
 
 CREATE OR REPLACE PROCEDURE sp_cadastrar_pesquisador_em_projeto(
     -- Parâmetros de entrada para o novo pesquisador
@@ -100,15 +84,4 @@ EXCEPTION
 END;
 $$;
 
---------------------------------------------------------------------------------
--- Passo 3: Demonstração de Uso da Stored Procedure
 
--- Exemplo de como o back-end chamaria a procedure para adicionar um novo pesquisador.
--- CALL sp_cadastrar_pesquisador_em_projeto(
---     'Dra. Valentina Nova',
---     'valentina.nova@ufba.br',
---     'Doutorado',
---     40,
---     1, -- ID do Projeto "Sistema de Recomendação para E-commerce"
---     1  -- ID do Laboratório "Lab. de Inteligência Artificial"
--- );
